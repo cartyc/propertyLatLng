@@ -8,18 +8,20 @@ from xml.dom.minidom import parse
 import re
 
 #Connection
-def propertyData():
+def propertyData(location, user, password, database):
 	'''
 	Returns connection object
 	'''
 	try:
-		con = sql.connect('localhost', 'root', '1346', 'cityProperties')
+		print "getting the connection"
+		con = sql.connect(location, user, password, database)
+		print "got the connection"
 		cur = con.cursor()
 		return cur, con
 
 	except:
 
-		con = sql.connect('localhost', 'root', '1346')
+		con = sql.connect(location, user, password)
 		cur = con.cursor()
 		#create datebase
 		cur.execute("CREATE DATABASE cityProperties")
