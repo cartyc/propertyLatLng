@@ -169,22 +169,3 @@ def workit(filename, connection, database):
 		#If source does not exist let user know
 		f.close()
 		print "File Does not exist."
-
-
-
-
-#Run the script
-
-
-database, connection = propertyData()
-
-workit(sys.argv[1], connection, database)
-
-
-allProperties = selectAll(database, "properties")
-
-for i in allProperties:
-	print i
-
-connection.commit()
-connection.close()
