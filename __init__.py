@@ -142,9 +142,9 @@ def workit(filename, connection, database):
 						print error 
 						
 						if error:
-							print 'exceeded'
-							print 'sleeping'
+
 							print error
+							print 'sleeping'
 							time.sleep(60*60*24)
 							continue
 
