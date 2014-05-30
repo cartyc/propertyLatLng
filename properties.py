@@ -76,15 +76,7 @@ def getLatLong( addrNum, addrName):
 		time.sleep(1)
 		return response
 		
-def saveRecords(outfile,data):
 
-	with open(outfile, 'aw') as csvfile:
-
-
-		writer = csv.writer(csvfile)
-		for line in data:
-			writer.writerow(line)
-	
 def checkifExists(pin, database):
 
 	database.execute("SELECT pin FROM properties WHERE pin = %s" % pin)
