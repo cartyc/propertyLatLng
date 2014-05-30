@@ -28,7 +28,7 @@ def propertyData(location, user, password, database):
 
 		cur.execute("use cityProperties")
 
-		cur.execute("CREATE TABLE properties (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, pin INT UNIQUE, addressNum INT, addressName varchar(255), addressType varchar(255), lat INT, lng INT)")
+		cur.execute("CREATE TABLE properties (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, pin INT UNIQUE, addressNum INT, addressName varchar(255), addressType varchar(255), lat FLOAT(10,6), lng FLOAT(10,6))")
 
 		return cur, con
 
