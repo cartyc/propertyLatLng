@@ -5,6 +5,7 @@ import sys
 import os.path
 import time
 from xml.dom.minidom import parse
+import re
 
 #Connection
 def propertyData():
@@ -25,7 +26,7 @@ def propertyData():
 
 		cur.execute("use cityProperties")
 
-		cur.execute("CREATE TABLE properties (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, addressNum INT, addressName varchar(255), addressType varchar(255), lat INT, lng INT)")
+		cur.execute("CREATE TABLE properties (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, pin INT UNIQUE, addressNum INT, addressName varchar(255), addressType varchar(255), lat INT, lng INT)")
 
 		return cur, con
 
@@ -37,9 +38,10 @@ def selectAll(connection, table):
 
 	return data
 
-def insertProperty(addressNum, addressName, addressType, lat, lng, connection):
+def insertProperty(pin, addressNum, addressName, addressType, lat, lng, connection):
 
-	connection.execute("INSERT INTO properties (addressNum, addressName, addressType, lat, lng) values( %s, '%s', '%s', %s, %s)" % ( addressNum, addressName, addressType, lat, lng))
+	addressName = re.escape(addressName)
+	connection.execute("INSERT INTO properties (pin, addressNum, addressName, addressType, lat, lng) values( %s, %s, '%s', '%s', %s, %s)" % ( pin, addressNum, addressName, addressType, lat, lng))
 
 	return 0
 
@@ -81,9 +83,15 @@ def saveRecords(outfile,data):
 		for line in data:
 			writer.writerow(line)
 	
+def checkifExists(pin, database):
 
+	database.execute("SELECT pin FROM properties WHERE pin = %s" % pin)
 
-def workit(filename, connection):
+	result = database.fetchone()
+
+	return result
+
+def workit(filename, connection, database):
 	'''
 	takes two command line arguments
 	filename --> csv file that contains the properties you want to get latlong's for
@@ -113,36 +121,49 @@ def workit(filename, connection):
 			Write to file every 100 records so that if something goes wrong along the way you
 			capture some information
 			'''
-			print lineCount
 			if lineCount == 0:
 				lineCount += 1 
 			
 			else:
-				print lineCount
-				#try to get the information from google
-				xml = parse( getLatLong(row[2],row[5]) )
 
-				try:
+				if checkifExists(row[1], database):
+					#print "pass"
+					#print lineCount
+					lineCount += 1
+					pass
 
-					error = xml.getElementsByTagName('error_message')[0].firstChild.nodeValue
-					print error 
-					
-					if error:
-						print 'exceeded'
-						print 'sleeping'
-						print error
-						time.sleep(60*60*24)
-						continue
+				else:
+					#try to get the information from google
+					xml = parse( getLatLong(row[2],row[5]) )
+
+					try:
+
+						error = xml.getElementsByTagName('error_message')[0].firstChild.nodeValue
+						print error 
+						
+						if error:
+							print 'exceeded'
+							print 'sleeping'
+							print error
+							time.sleep(60*60*24)
+							continue
 
 
-				except:
-					lat = xml.getElementsByTagName('lat')[0].firstChild.nodeValue
-					lng = xml.getElementsByTagName('lng')[0].firstChild.nodeValue
-					
-					insertProperty(row[2], row[5], row[7], lat, lng, connection)
+					except:
+						lat = xml.getElementsByTagName('lat')[0].firstChild.nodeValue
+						lng = xml.getElementsByTagName('lng')[0].firstChild.nodeValue
+						
+						try:
+							insertProperty(row[1], row[2], row[5], row[7], lat, lng, database)
 
-					#increase count.
-					lineCount += 1 
+							if lineCount % 100:
+								connection.commit()
+							#increase count.
+							lineCount += 1 
+
+						except:
+
+							continue
 
 	else:
 		#If source does not exist let user know
@@ -157,7 +178,7 @@ def workit(filename, connection):
 
 database, connection = propertyData()
 
-workit(sys.argv[1], database)
+workit(sys.argv[1], connection, database)
 
 
 allProperties = selectAll(database, "properties")
