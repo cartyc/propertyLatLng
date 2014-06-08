@@ -139,7 +139,7 @@ def workit(filename, connection, database):
 
 							print error
 							print 'sleeping'
-							time.sleep(60*60*24)
+							time.sleep(60*60*12)
 							continue
 
 
